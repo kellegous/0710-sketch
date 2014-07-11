@@ -1,0 +1,24 @@
+#!/usr/bin/env python2.7
+
+import os
+import subprocess
+import sys
+
+DEPS = [
+  'github.com/kellegous/pork',
+  'github.com/kellegous/lilcache'
+]
+
+def main():
+  root = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..'))
+  os.environ['GOPATH'] = root
+
+  for dep in DEPS:
+    if subprocess.call(['go', 'get', dep]) != 0:
+      return 1
+      
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

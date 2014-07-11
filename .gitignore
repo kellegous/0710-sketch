@@ -3,3 +3,4 @@ pkg
 *.o
 /render
 /cfg.json
+/sample
