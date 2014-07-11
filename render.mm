@@ -60,6 +60,13 @@ int main(int argc, char* argv[]) {
     int x = i%dw;
     int y = i/dw;
 
+    AutoRef<CGColorRef> c = CGColorCreateGenericRGB(0, 0, 0, 0.4);
+    CGContextSetShadowWithColor(
+      ctx,
+      CGSizeMake(-4, 2),
+      5.0,
+      c);
+
     CGContextSetRGBFillColor(
       ctx,
       pixels[o+0] / 255.0,
@@ -68,7 +75,7 @@ int main(int argc, char* argv[]) {
       pixels[o+3] / 255.0);
     CGContextFillRect(
       ctx,
-      CGRectMake(x*grid, y*grid, grid, grid));
+      CGRectMake(x*grid, y*grid, grid-2, grid-2));
   }
 
   std::string filename("dump.png");

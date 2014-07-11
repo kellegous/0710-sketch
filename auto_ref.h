@@ -51,6 +51,13 @@ struct AutoRefTraits<CGDataProviderRef> {
   }
 };
 
+template<>
+struct AutoRefTraits<CGColorRef> {
+  static void Release(CGColorRef ref) {
+    CGColorRelease(ref);
+  }
+};
+
 template<typename T, typename Traits = AutoRefTraits<T> >
 class AutoRef {
  public:
