@@ -6,6 +6,7 @@
 
 #include "auto_ref.h"
 #include "gr.h"
+#include "math.h"
 #include "status.h"
 
 namespace {
@@ -57,25 +58,38 @@ int main(int argc, char* argv[]) {
 
   for (int i = 0, n = dw*dh; i < n; i++) {
     int o = i*4;
-    int x = i%dw;
-    int y = i/dw;
+    float x = (i%dw)*grid;
+    float y = (i/dw)*grid;
 
+    float a = M_PI / 6;
+
+    CGContextSaveGState(ctx);
+    CGContextConcatCTM(ctx, CGAffineTransformMake(
+        cos(a),
+        sin(a),
+        -sin(a),
+        cos(a),
+        x-x*cos(a)+y*sin(a),
+        y-x*sin(a)-y*cos(a)));
     AutoRef<CGColorRef> c = CGColorCreateGenericRGB(0, 0, 0, 0.4);
     CGContextSetShadowWithColor(
       ctx,
       CGSizeMake(-4, 2),
       5.0,
       c);
-
     CGContextSetRGBFillColor(
       ctx,
       pixels[o+0] / 255.0,
       pixels[o+1] / 255.0,
       pixels[o+2] / 255.0,
       pixels[o+3] / 255.0);
-    CGContextFillRect(
+
+    gr::DrawRoundedRect(
       ctx,
-      CGRectMake(x*grid, y*grid, grid-2, grid-2));
+      kCGPathFill,
+      CGRectMake(x, y, grid*1.5, grid*1.5),
+      4.0);
+    CGContextRestoreGState(ctx);
   }
 
   std::string filename("dump.png");

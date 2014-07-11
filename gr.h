@@ -21,6 +21,12 @@ Status LoadFromUrl(CGImageRef* img, std::string& url);
 
 void DrawCoveringImage(CGContextRef ctx, CGImageRef img);
 
+void DrawRoundedRect(
+    CGContextRef ctx,
+    CGPathDrawingMode mode,
+    CGRect rect,
+    float rad);
+
 }
 
 #endif // GR_H_
