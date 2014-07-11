@@ -1,0 +1,5 @@
+src/github.com
+pkg
+*.o
+/render
+/cfg.json
