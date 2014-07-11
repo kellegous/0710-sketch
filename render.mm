@@ -39,7 +39,7 @@ Status LoadQueryData(uint8_t* data, std::string& query, int dw, int dh) {
 };
 
 int main(int argc, char* argv[]) {
-  int grid = 50;
+  int grid = 15;
   int w = 1600;
   int h = 600;
   int dw = w / grid;
