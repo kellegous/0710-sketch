@@ -141,15 +141,15 @@ void DrawCoveringImage(CGContextRef ctx, CGImageRef img) {
 
 //
 void DrawRoundedRect(CGContextRef ctx, CGPathDrawingMode mode, CGRect rect, float rad) {
-  CGFloat minx = CGRectGetMinX(rect), midx = CGRectGetMidX(rect), maxx = CGRectGetMaxX(rect); 
-  CGFloat miny = CGRectGetMinY(rect), midy = CGRectGetMidY(rect), maxy = CGRectGetMaxY(rect); 
-  CGContextMoveToPoint(ctx, minx, midy); 
-  CGContextAddArcToPoint(ctx, minx, miny, midx, miny, rad); 
-  CGContextAddArcToPoint(ctx, maxx, miny, maxx, midy, rad); 
-  CGContextAddArcToPoint(ctx, maxx, maxy, midx, maxy, rad); 
-  CGContextAddArcToPoint(ctx, minx, maxy, minx, midy, rad); 
-  CGContextClosePath(ctx); 
-  CGContextDrawPath(ctx, mode);  
+  CGFloat minx = CGRectGetMinX(rect), midx = CGRectGetMidX(rect), maxx = CGRectGetMaxX(rect);
+  CGFloat miny = CGRectGetMinY(rect), midy = CGRectGetMidY(rect), maxy = CGRectGetMaxY(rect);
+  CGContextMoveToPoint(ctx, minx, midy);
+  CGContextAddArcToPoint(ctx, minx, miny, midx, miny, rad);
+  CGContextAddArcToPoint(ctx, maxx, miny, maxx, midy, rad);
+  CGContextAddArcToPoint(ctx, maxx, maxy, midx, maxy, rad);
+  CGContextAddArcToPoint(ctx, minx, maxy, minx, midy, rad);
+  CGContextClosePath(ctx);
+  CGContextDrawPath(ctx, mode);
 }
 
 }

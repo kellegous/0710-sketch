@@ -37,25 +37,44 @@ Status LoadQueryData(uint8_t* data, std::string& query, int dw, int dh) {
   return NoErr();
 }
 
-};
+void DrawThingy(
+    CGContextRef ctx,
+    CGPathDrawingMode mode,
+    CGRect rect,
+    float r0,
+    float r1) {
+  CGFloat minx = CGRectGetMinX(rect), midx = CGRectGetMidX(rect), maxx = CGRectGetMaxX(rect);
+  CGFloat miny = CGRectGetMinY(rect), midy = CGRectGetMidY(rect), maxy = CGRectGetMaxY(rect);
+  CGContextMoveToPoint(ctx, minx, midy);
+  CGContextAddArcToPoint(ctx, minx, miny, midx, miny, r0);
+  CGContextAddArcToPoint(ctx, maxx, miny, maxx, midy, r1);
+  CGContextAddArcToPoint(ctx, maxx, maxy, midx, maxy, r0);
+  CGContextAddArcToPoint(ctx, minx, maxy, minx, midy, r1);
+  CGContextClosePath(ctx);
+  CGContextDrawPath(ctx, mode);
+}
+
+}
 
 int main(int argc, char* argv[]) {
-  int grid = 15;
+  int grid = 20;
   int w = 1600;
   int h = 600;
-  int dw = w / grid;
+  int dw = 1 + (w / grid);
   int dh = h / grid;
 
   AutoRef<CGContextRef> ctx = gr::NewContext(w, h);
 
   std::unique_ptr<uint8_t[]> pixels(new uint8_t[dw*dh*4]);
-  std::string query("lips");
+  std::string query("nude women");
   Status did = LoadQueryData(pixels.get(), query, dw, dh);
   if (!did.ok()) {
     fprintf(stderr, "%s\n", did.what());
     exit(1);
   }
 
+  CGContextScaleCTM(ctx, 1.0, -1.0);
+  CGContextTranslateCTM(ctx, 0, -h - 25);
   for (int i = 0, n = dw*dh; i < n; i++) {
     int o = i*4;
     float x = (i%dw)*grid;
@@ -77,6 +96,7 @@ int main(int argc, char* argv[]) {
       CGSizeMake(-4, 2),
       5.0,
       c);
+    CGContextSetRGBStrokeColor(ctx, 0, 0, 0, 0.2);
     CGContextSetRGBFillColor(
       ctx,
       pixels[o+0] / 255.0,
@@ -84,11 +104,12 @@ int main(int argc, char* argv[]) {
       pixels[o+2] / 255.0,
       pixels[o+3] / 255.0);
 
-    gr::DrawRoundedRect(
-      ctx,
-      kCGPathFill,
-      CGRectMake(x, y, grid*1.5, grid*1.5),
-      4.0);
+    DrawThingy(
+        ctx,
+        kCGPathFillStroke,
+        CGRectMake(x, y, grid*1.5, grid*1.5),
+        4.0,
+        1.0);
     CGContextRestoreGState(ctx);
   }
 
