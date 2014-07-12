@@ -1,42 +1,31 @@
 #import <Cocoa/Cocoa.h>
-#include <curl/curl.h>
 #include <memory>
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 #include "auto_ref.h"
 #include "gr.h"
 #include "math.h"
 #include "status.h"
+#include "util.h"
 
 namespace {
 
-void UrlForQuery(std::string* res, std::string& query) {
-  res->assign("http://localhost:6488/flickr?q=");
-  CURL* curl = curl_easy_init();
-  char* q = curl_easy_escape(curl, query.c_str(), query.size());
-  res->append(q);
-  curl_free(q);
-  curl_easy_cleanup(curl);
-}
-
-Status LoadQueryData(uint8_t* data, std::string& query, int dw, int dh) {
-  std::string url;
-  UrlForQuery(&url, query);
-
+//
+Status LoadFileData(uint8_t* data, std::string& src, int dw, int dh) {
   AutoRef<CGImageRef> img;
-  Status did = gr::LoadFromUrl(img.addr(), url);
+  Status did = gr::LoadFromFile(img.addr(), src);
   if (!did.ok()) {
     return did;
   }
 
   AutoRef<CGContextRef> ctx = gr::NewContext(data, dw, dh);
-
   gr::DrawCoveringImage(ctx, img);
-
   return NoErr();
 }
 
+//
 void DrawThingy(
     CGContextRef ctx,
     CGPathDrawingMode mode,
@@ -54,9 +43,8 @@ void DrawThingy(
   CGContextDrawPath(ctx, mode);
 }
 
-}
-
-int main(int argc, char* argv[]) {
+//
+Status Render(std::string& dst, std::string& src) {
   int grid = 20;
   int w = 1600;
   int h = 600;
@@ -66,11 +54,9 @@ int main(int argc, char* argv[]) {
   AutoRef<CGContextRef> ctx = gr::NewContext(w, h);
 
   std::unique_ptr<uint8_t[]> pixels(new uint8_t[dw*dh*4]);
-  std::string query("nude women");
-  Status did = LoadQueryData(pixels.get(), query, dw, dh);
+  Status did = LoadFileData(pixels.get(), src, dw, dh);
   if (!did.ok()) {
-    fprintf(stderr, "%s\n", did.what());
-    exit(1);
+    return did;
   }
 
   CGContextScaleCTM(ctx, 1.0, -1.0);
@@ -113,11 +99,51 @@ int main(int argc, char* argv[]) {
     CGContextRestoreGState(ctx);
   }
 
-  std::string filename("dump.png");
-  did = gr::ExportAsPng(ctx, filename);
-  if (!did.ok()) {
-    fprintf(stderr, "%s\n", did.what());
-    exit(1);
+  return gr::ExportAsPng(ctx, dst);
+}
+
+void PrintUse(int argc, char* argv[]) {
+  fprintf(stderr, "usage: %s srcs... dst", argv[0]);
+  exit(1);
+}
+
+void Panic(Status& did) {
+  fprintf(stderr, "%s\n", did.what());
+  exit(1);
+}
+
+} // anonymous
+
+int main(int argc, char* argv[]) {
+  if (argc < 3) {
+    PrintUse(argc, argv);
+  }
+
+  std::string dstRoot(argv[argc-1]);
+
+  for (int i = 1, n = argc-1; i < n; i++) {
+    std::string src(argv[i]);
+    src.append("/*.jpg");
+
+    std::vector<std::string> files;
+    Status did = util::Glob(src.c_str(), &files);
+    if (!did.ok()) {
+      Panic(did);
+    }
+
+    for (int j = 0, m = files.size(); j < m; j++) {
+      std::string dst(dstRoot);
+
+      std::string base;
+      util::Basename(&base, files[j]);
+      util::PathJoin(&dst, base);
+
+      printf("%s\n", base.c_str());
+      did = Render(dst, files[j]);
+      if (!did.ok()) {
+        Panic(did);
+      }
+    }
   }
 
   return 0;

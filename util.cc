@@ -3,6 +3,7 @@
 #include <cstdarg>
 #include <dirent.h>
 #include <glob.h>
+#include <libgen.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -221,6 +222,22 @@ Status RemoveDirectory(const std::string& path, bool recursive) {
   }
 
   return NoErr();
+}
+
+void Basename(std::string* res, std::string& path) {
+  res->clear();
+  if (path.empty()) {
+    return;
+  }
+
+  size_t j = path.size()-1;
+  do {
+    if (path[j] == '/') {
+      res->assign(path, j+1, path.size()-1);
+      break;
+    }
+    j--;
+  } while (j != 0);
 }
 
 } // util

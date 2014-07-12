@@ -78,6 +78,8 @@ bool IsDirectory(const std::string& path);
 // recursively remove all sub-content before removing the directory.
 Status RemoveDirectory(const std::string& path, bool recursive=false);
 
+void Basename(std::string* res, std::string& path);
+
 } // util
 
 #endif // UTIL_H_
