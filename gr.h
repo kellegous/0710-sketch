@@ -19,6 +19,8 @@ Status ExportAsPng(CGContextRef ctx, std::string& filename);
 
 Status LoadFromUrl(CGImageRef* img, std::string& url);
 
+Status LoadFromFile(CGImageRef* img, std::string& filename);
+
 void DrawCoveringImage(CGContextRef ctx, CGImageRef img);
 
 void DrawRoundedRect(

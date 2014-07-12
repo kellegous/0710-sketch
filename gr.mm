@@ -2,6 +2,53 @@
 
 #include "auto_ref.h"
 
+namespace {
+
+Status FileUrlFromString(CFURLRef* url, std::string& filename) {
+  AutoRef<CFStringRef> fn = CFStringCreateWithCStringNoCopy(
+      NULL,
+      filename.c_str(),
+      kCFStringEncodingUTF8,
+      kCFAllocatorNull);
+  if (!fn) {
+    return ERR("cannot create string");
+  }
+
+  CFURLRef cfUrl = CFURLCreateWithFileSystemPath(
+      NULL,
+      fn,
+      kCFURLPOSIXPathStyle,
+      false);
+  if (!cfUrl) {
+    return ERR("cannot create url");
+  }
+
+  *url = cfUrl;
+
+  return NoErr();
+}
+
+Status LoadFromCfUrl(CGImageRef* img, CFURLRef url) {
+  AutoRef<CGDataProviderRef> cfIp = CGDataProviderCreateWithURL(url);
+  if (!cfIp) {
+    return ERR("cannot create data provider");
+  }
+
+  CGImageRef cgImg = CGImageCreateWithJPEGDataProvider(
+      cfIp,
+      NULL,
+      false,
+      kCGRenderingIntentDefault);
+  if (!cgImg) {
+    return ERR("cannot decode image");
+  }
+
+  *img = cgImg;
+  return NoErr();
+}
+
+} // anonymous
+
 namespace gr {
 
 //
@@ -33,22 +80,10 @@ CGRect BoundsOf(CGContextRef ctx) {
 
 //
 Status ExportAsPng(CGImageRef img, std::string& filename) {
-  AutoRef<CFStringRef> fn = CFStringCreateWithCStringNoCopy(
-      NULL,
-      filename.c_str(),
-      kCFStringEncodingUTF8,
-      kCFAllocatorNull);
-  if (!fn) {
-    return ERR("cannot create string");
-  }
-
-  AutoRef<CFURLRef> url = CFURLCreateWithFileSystemPath(
-      NULL,
-      fn,
-      kCFURLPOSIXPathStyle,
-      false);
-  if (!url) {
-    return ERR("cannot create url");
+  AutoRef<CFURLRef> url;
+  Status did = FileUrlFromString(url.addr(), filename);
+  if (!did.ok()) {
+    return did;
   }
 
   AutoRef<CGImageDestinationRef> dst = CGImageDestinationCreateWithURL(
@@ -74,6 +109,7 @@ Status ExportAsPng(CGContextRef ctx, std::string& filename) {
   return ExportAsPng(img, filename);
 }
 
+//
 Status LoadFromUrl(CGImageRef* img, std::string& url) {
   *img = NULL;
 
@@ -94,21 +130,19 @@ Status LoadFromUrl(CGImageRef* img, std::string& url) {
     return ERR("cannot create url");
   }
 
-  AutoRef<CGDataProviderRef> cfIp = CGDataProviderCreateWithURL(cfUrl);
-  if (!cfIp) {
-    return ERR("cannot create data provider");
+  return LoadFromCfUrl(img, cfUrl);
+}
+
+Status LoadFromFile(CGImageRef* img, std::string& filename) {
+  *img = NULL;
+
+  AutoRef<CFURLRef> url;
+  Status did = FileUrlFromString(url.addr(), filename);
+  if (!did.ok()) {
+    return did;
   }
 
-  *img = CGImageCreateWithJPEGDataProvider(
-      cfIp,
-      NULL,
-      false,
-      kCGRenderingIntentDefault);
-  if (!img) {
-    return ERR("cannot decode image");
-  }
-
-  return NoErr();
+  return LoadFromCfUrl(img, url);
 }
 
 //

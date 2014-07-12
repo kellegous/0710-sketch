@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
         ctx,
         kCGPathFillStroke,
         CGRectMake(x, y, grid*1.5, grid*1.5),
-        4.0,
+        10.0,
         1.0);
     CGContextRestoreGState(ctx);
   }
