@@ -17,6 +17,10 @@ Status ExportAsPng(CGImageRef img, std::string& filename);
 
 Status ExportAsPng(CGContextRef ctx, std::string& filename);
 
+Status ExportAsJpg(CGContextRef ctx, std::string& filename, float qual);
+
+Status ExportAsJpg(CGContextRef ctx, std::string& filename, float qual);
+
 Status LoadFromUrl(CGImageRef* img, std::string& url);
 
 Status LoadFromFile(CGImageRef* img, std::string& filename);

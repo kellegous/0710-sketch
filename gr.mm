@@ -47,6 +47,31 @@ Status LoadFromCfUrl(CGImageRef* img, CFURLRef url) {
   return NoErr();
 }
 
+Status Export(CGImageRef img,
+    std::string& filename,
+    CFStringRef format,
+    CFMutableDictionaryRef opts) {
+  Status did;
+
+  AutoRef<CFURLRef> url;
+  did = FileUrlFromString(url.addr(), filename);
+  if (!did.ok()) {
+    return did;
+  }
+
+  AutoRef<CGImageDestinationRef> dst = CGImageDestinationCreateWithURL(
+      url,
+      format,
+      1,
+      NULL);
+  if (!dst) {
+    return ERR("cannot create imate destination");
+  }
+
+  CGImageDestinationAddImage(dst, img, opts);
+  return NoErr();
+}
+
 } // anonymous
 
 namespace gr {
@@ -78,25 +103,31 @@ CGRect BoundsOf(CGContextRef ctx) {
       CGBitmapContextGetHeight(ctx));
 }
 
+
+Status ExportAsJpg(CGImageRef img, std::string& filename, float qual) {
+  CFMutableDictionaryRef opts = CFDictionaryCreateMutable(
+      nil,
+      0,
+      &kCFTypeDictionaryKeyCallBacks,
+      &kCFTypeDictionaryValueCallBacks);
+  CFDictionarySetValue(
+      opts,
+      kCGImageDestinationLossyCompressionQuality,
+      CFNumberCreate(NULL, kCFNumberFloat32Type, &qual));
+  return Export(img, filename, kUTTypeJPEG, opts);
+}
+
+Status ExportAsJpg(CGContextRef ctx, std::string& filename, float qual) {
+  AutoRef<CGImageRef> img = CGBitmapContextCreateImage(ctx);
+  if (!img) {
+    return ERR("cannot create image");
+  }
+  return ExportAsJpg(img, filename, qual);
+}
+
 //
 Status ExportAsPng(CGImageRef img, std::string& filename) {
-  AutoRef<CFURLRef> url;
-  Status did = FileUrlFromString(url.addr(), filename);
-  if (!did.ok()) {
-    return did;
-  }
-
-  AutoRef<CGImageDestinationRef> dst = CGImageDestinationCreateWithURL(
-      url,
-      kUTTypePNG,
-      1,
-      0);
-  if (!dst) {
-    return ERR("cannot create image destination");
-  }
-
-  CGImageDestinationAddImage(dst, img, 0);
-  return NoErr();
+  return Export(img, filename, kUTTypePNG, NULL);
 }
 
 //
@@ -106,7 +137,7 @@ Status ExportAsPng(CGContextRef ctx, std::string& filename) {
     return ERR("cannot create image");
   }
 
-  return ExportAsPng(img, filename);
+  return Export(img, filename, kUTTypePNG, NULL);
 }
 
 //

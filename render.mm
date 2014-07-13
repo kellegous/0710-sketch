@@ -49,7 +49,7 @@ Status Render(std::string& dst, std::string& src, int grid, bool lighten) {
   int w = 1600;
   int h = 600;
   int dw = 1 + (w / grid);
-  int dh = h / grid;
+  int dh = 1 + (h / grid);
 
   AutoRef<CGContextRef> ctx = gr::NewContext(w, h);
 
@@ -59,36 +59,46 @@ Status Render(std::string& dst, std::string& src, int grid, bool lighten) {
     return did;
   }
 
+  CGContextSetRGBFillColor(ctx, 1.0, 1.0, 1.0, 1.0);
+  CGContextFillRect(ctx, CGRectMake(0, 0, w, h));
+
   CGContextScaleCTM(ctx, 1.0, -1.0);
-  CGContextTranslateCTM(ctx, 0, -h - 25);
+  CGContextTranslateCTM(ctx, 0, -h - grid);
   for (int i = 0, n = dw*dh; i < n; i++) {
     int o = i*4;
     float x = (i%dw)*grid;
     float y = (i/dw)*grid;
 
-    float a = M_PI / 6;
+    float t = M_PI / 6;
 
     CGContextSaveGState(ctx);
     CGContextConcatCTM(ctx, CGAffineTransformMake(
-        cos(a),
-        sin(a),
-        -sin(a),
-        cos(a),
-        x-x*cos(a)+y*sin(a),
-        y-x*sin(a)-y*cos(a)));
+        cos(t),
+        sin(t),
+        -sin(t),
+        cos(t),
+        x-x*cos(t)+y*sin(t),
+        y-x*sin(t)-y*cos(t)));
     AutoRef<CGColorRef> c = CGColorCreateGenericRGB(0, 0, 0, 0.4);
     CGContextSetShadowWithColor(
       ctx,
       CGSizeMake(-4, 2),
-      5.0,
+      2.0,
       c);
     CGContextSetRGBStrokeColor(ctx, 0, 0, 0, 0.2);
-    CGContextSetRGBFillColor(
-      ctx,
-      pixels[o+0] / 255.0,
-      pixels[o+1] / 255.0,
-      pixels[o+2] / 255.0,
-      pixels[o+3] / 255.0);
+    float r = pixels[o+0] / 255.0,
+          g = pixels[o+1] / 255.0,
+          b = pixels[o+2] / 255.0,
+          a = pixels[o+3] / 255.0;
+
+    float f = 0.25;
+    if (lighten) {
+      r = r + (1.0-r)*f;
+      g = g + (1.0-g)*f;
+      b = b + (1.0-b)*f;
+    }
+
+    CGContextSetRGBFillColor(ctx, r, g, b, a);
 
     DrawThingy(
         ctx,
@@ -99,6 +109,7 @@ Status Render(std::string& dst, std::string& src, int grid, bool lighten) {
     CGContextRestoreGState(ctx);
   }
 
+  // return gr::ExportAsJpg(ctx, dst, 0.6);
   return gr::ExportAsPng(ctx, dst);
 }
 
