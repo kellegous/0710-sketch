@@ -1,4 +1,5 @@
 #import <Cocoa/Cocoa.h>
+#include <getopt.h>
 #include <memory>
 #include <stdio.h>
 #include <string>
@@ -44,8 +45,7 @@ void DrawThingy(
 }
 
 //
-Status Render(std::string& dst, std::string& src) {
-  int grid = 20;
+Status Render(std::string& dst, std::string& src, int grid, bool lighten) {
   int w = 1600;
   int h = 600;
   int dw = 1 + (w / grid);
@@ -103,7 +103,7 @@ Status Render(std::string& dst, std::string& src) {
 }
 
 void PrintUse(int argc, char* argv[]) {
-  fprintf(stderr, "usage: %s srcs... dst", argv[0]);
+  fprintf(stderr, "usage: %s src dst\n", argv[0]);
   exit(1);
 }
 
@@ -112,38 +112,68 @@ void Panic(Status& did) {
   exit(1);
 }
 
-} // anonymous
+bool ParseIntArg(const char* arg, int* v) {
+  std::string s(arg);
+  Status did = util::ParseInt(s, 10, v);
+  return did.ok();
+}
 
-int main(int argc, char* argv[]) {
-  if (argc < 3) {
+void ParseArgs(int argc, char* argv[],
+    std::string* src,
+    std::string* dst,
+    int* grid,
+    bool* lighten) {
+  int c = 0;
+  while (true) {
+    static struct option opts[] = {
+      { "grid-size", required_argument, 0, 'g' },
+      { "lighten",   no_argument,       0, 'l' },
+      { 0, 0, 0, 0 }
+    };
+
+    int opt_index = 0;
+
+    c = getopt_long(argc, argv, "", opts, &opt_index);
+
+    if (c == -1) {
+      break;
+    }
+
+    switch (c) {
+    case 'g':
+      if (!ParseIntArg(optarg, grid)) {
+        fprintf(stderr, "invalid --grid-size option\n");
+        PrintUse(argc, argv);
+      }
+      break;
+    case 'l':
+      *lighten = true;
+      break;
+    case '?':
+    default:
+      PrintUse(argc, argv);
+    }
+  }
+
+  if (argc - optind != 2) {
     PrintUse(argc, argv);
   }
 
-  std::string dstRoot(argv[argc-1]);
+  src->assign(argv[optind]);
+  dst->assign(argv[optind+1]);
+}
 
-  for (int i = 1, n = argc-1; i < n; i++) {
-    std::string src(argv[i]);
-    src.append("/*.jpg");
+} // anonymous
 
-    std::vector<std::string> files;
-    Status did = util::Glob(src.c_str(), &files);
-    if (!did.ok()) {
-      Panic(did);
-    }
+int main(int argc, char* argv[]) {
+  std::string src, dst;
+  int grid = 40;
+  bool lighten = false;
+  ParseArgs(argc, argv, &src, &dst, &grid, &lighten);
 
-    for (int j = 0, m = files.size(); j < m; j++) {
-      std::string dst(dstRoot);
-
-      std::string base;
-      util::Basename(&base, files[j]);
-      util::PathJoin(&dst, base);
-
-      printf("%s\n", base.c_str());
-      did = Render(dst, files[j]);
-      if (!did.ok()) {
-        Panic(did);
-      }
-    }
+  Status did = Render(dst, src, grid, lighten);
+  if (!did.ok()) {
+    Panic(did);
   }
 
   return 0;
