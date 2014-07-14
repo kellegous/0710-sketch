@@ -104,7 +104,7 @@ Status Render(std::string& dst, std::string& src, int grid, bool lighten) {
         ctx,
         kCGPathFillStroke,
         CGRectMake(x, y, grid*1.5, grid*1.5),
-        10.0,
+        5.0,
         1.0);
     CGContextRestoreGState(ctx);
   }
