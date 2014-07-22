@@ -25,7 +25,7 @@ def main():
           continue
         print '%s (%d)' % (src, size)
         if subprocess.call([
-            os.path.join(base, 'render'),
+            os.path.join(base, 'shingle'),
             '--grid-size=%d' % size,
             src,
             dst]) != 0:

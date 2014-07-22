@@ -1,6 +1,6 @@
 src/github.com
 pkg
 *.o
-/render
+/shingle
 /cfg.json
-/sample
+/furlr

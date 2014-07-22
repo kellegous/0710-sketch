@@ -1,12 +1,11 @@
 CFLAGS=-Wall
 LDFLAGS=-framework Cocoa -lcurl
 
-OBJS=gr.o render.o status.o util.o
-DEPS=src/github.com/kellegous/pork src/github.com/kellegous/lilcache
-SRCS=$(shell find src -name *.go)
+OBJS=gr.o shingle.o status.o util.o
 GOPATH=$(shell pwd)
+PROGS=shingle furlr
 
-ALL: sample render
+ALL: $(PROGS)
 
 %.o : %.mm %.h
 	g++ $(CFLAGS) -c -o $@ $<
@@ -14,17 +13,11 @@ ALL: sample render
 status.o : status.cc status.h
 	g++ $(CFLAGS) -c -o $@ $<
 
-render : render.mm $(OBJS)
-	g++ $(LDFLAGS) -o render $(OBJS)
+shingle: shingle.o $(OBJS)
+	g++ $(LDFLAGS) -o $@ $(OBJS)
 
-sample : $(SRCS) $(DEPS)
-	GOPATH=$(GOPATH) go build -o sample src/sample/main.go
-
-src/github.com/kellegous/pork:
-	./bin/get-deps
-
-src/github.com/kellegous/lilcache:
-	./bin/get-deps
+furlr : $(shell find src -name *.go)
+	GOPATH=$(GOPATH) go build -o furlr src/furlr/main.go
 
 clean:
-	rm -f $(OBJS) render sample
+	rm -f $(OBJS) $(PROGS)
