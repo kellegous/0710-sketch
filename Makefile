@@ -23,4 +23,4 @@ furlr : $(shell find src -name *.go)
 	GOPATH=$(GOPATH) go build -o furlr src/furlr/main.go
 
 clean:
-	rm -f $(OBJS) $(PROGS)
+	rm -f $(OBJS) $(PROGS) $(PROGS:=.o)
