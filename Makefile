@@ -1,9 +1,9 @@
 CFLAGS=-Wall
 LDFLAGS=-framework Cocoa -lcurl
 
-OBJS=gr.o shingle.o status.o util.o
+OBJS=gr.o status.o util.o
 GOPATH=$(shell pwd)
-PROGS=shingle furlr
+PROGS=shingle furlr bern
 
 ALL: $(PROGS)
 
@@ -14,7 +14,10 @@ status.o : status.cc status.h
 	g++ $(CFLAGS) -c -o $@ $<
 
 shingle: shingle.o $(OBJS)
-	g++ $(LDFLAGS) -o $@ $(OBJS)
+	g++ $(LDFLAGS) -o $@ $^
+
+bern: bern.o $(OBJS)
+	g++ $(LDFLAGS) -o $@ $^
 
 furlr : $(shell find src -name *.go)
 	GOPATH=$(GOPATH) go build -o furlr src/furlr/main.go
