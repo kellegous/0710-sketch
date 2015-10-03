@@ -74,7 +74,7 @@ Status Render(std::string& dst, std::string& src, int w, int h) {
     for (int i = 0; i < w; i++) {
       FromColorIndex(&r, &g, &b, sample[j*w + i]);
       CGContextSetRGBFillColor(ctx, r, g, b, 1.0);
-      CGContextFillRect(ctx, CGRectMake(i, j*dy + 1, 1, dy - 2));
+      CGContextFillRect(ctx, CGRectMake(i, j*dy + 1, 1, dy - 1));
     }
   }
 
