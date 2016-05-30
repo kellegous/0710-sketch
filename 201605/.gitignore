@@ -1,0 +1,5 @@
+*.pyc
+*.py.pdf
+*.py.png
+*.py.svg
+/.env
